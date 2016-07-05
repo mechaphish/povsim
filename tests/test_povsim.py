@@ -10,7 +10,7 @@ logging.getLogger("povsim").setLevel("DEBUG")
 
 def test_good_pov():
     '''
-    Test exploitation of legit_00001 given a good crash.
+    Test a POV which exploits the target binary.
     '''
 
     pov_tester = CGCPovSimulator()
@@ -22,7 +22,7 @@ def test_good_pov():
 
 def test_bad_pov():
     '''
-    Test exploitation of legit_00001 given a good crash.
+    Test a POV which fails to exploit the target binary.
     '''
 
     pov_tester = CGCPovSimulator()
