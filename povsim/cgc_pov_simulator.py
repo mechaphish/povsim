@@ -174,13 +174,13 @@ class CGCPovSimulator(object):
                 l.error("received incorrect pov type")
                 return False
 
-        l.debug("recieved pov_type of %d\n", pov_type)
+        l.info("recieved pov_type of %d", pov_type)
         if pov_type == 1:
-            l.debug("entering type1 negotiation")
+            l.info("entering type1 negotiation")
             return self._do_binary_negotiation_type_1(negotiation_pipe, directory,
                                                       challenge_binary_pid, timeout)
         elif pov_type == 2:
-            l.debug("entering type2 negotiation")
+            l.info("entering type2 negotiation")
             return self._do_binary_negotiation_type_2(negotiation_pipe, directory,
                                                       challenge_binary_pid, timeout)
         else:
@@ -202,9 +202,9 @@ class CGCPovSimulator(object):
         regmask = struct.unpack("<I", self._recv_timeout(negotiation_pipe, 4))[0]
         regnum = struct.unpack("<I", self._recv_timeout(negotiation_pipe, 4))[0]
 
-        l.debug("recieved a ipmask of %#x", ipmask)
-        l.debug("recieved a regmask of %#x", regmask)
-        l.debug("recieved a regnum of %#x", regnum)
+        l.info("recieved a ipmask of %#x", ipmask)
+        l.info("recieved a regmask of %#x", regmask)
+        l.info("recieved a regnum of %#x", regnum)
 
         register = CGCPovSimulator.registers[regnum]
         if self.expected_register is not None:
@@ -223,8 +223,8 @@ class CGCPovSimulator(object):
         reg_val = random.randint(0, 0xffffffff)
         ip_val = random.randint(0, 0xffffffff)
 
-        l.debug("requesting a register value of %#x", reg_val)
-        l.debug("requesting a ip value of %#x", ip_val)
+        l.info("requesting a register value of %#x", reg_val)
+        l.info("requesting a ip value of %#x", ip_val)
 
         negotiation_pipe.send(
                 struct.pack("<I", ip_val) + struct.pack("<I", reg_val)
@@ -272,8 +272,8 @@ class CGCPovSimulator(object):
             l.error("%s's value not found in core file", register)
             return False
 
-        l.debug("register value set to: %#x", set_reg_value)
-        l.debug("ip value set to: %#x", set_ip_value)
+        l.info("register value set to: %#x", set_reg_value)
+        l.info("ip value set to: %#x", set_ip_value)
 
         register_set = set_reg_value & regmask == reg_val & regmask
         ip_set = set_ip_value & ipmask == ip_val & ipmask
@@ -287,7 +287,9 @@ class CGCPovSimulator(object):
         # clean up the dropped core
         os.remove(corefile)
 
-        return register_set and ip_set
+        result = register_set and ip_set
+        l.info("pov successful? %s", result)
+        return result
 
     @staticmethod
     def _do_binary_negotiation_type_2(negotiation_pipe, directory,
@@ -308,22 +310,22 @@ class CGCPovSimulator(object):
 
         type2_vals = [region_addr, region_size, read_size]
         type2_vals_elems = map(lambda x: struct.pack("<I", x), type2_vals)
-        l.debug("sent off type2 params (%#x, %#x, %#x)", region_addr, region_size, read_size)
+        l.info("sent off type2 params (%#x, %#x, %#x)", region_addr, region_size, read_size)
         negotiation_pipe.send(''.join(type2_vals_elems))
 
         # receive the leaked flag data
         flag_data = CGCPovSimulator._recv_timeout(negotiation_pipe, read_size, timeout)
 
         if len(flag_data) < 4:
-            l.debug("didnt receive enough bytes")
+            l.info("didnt receive enough bytes")
         else:
-            l.debug("received flag data %#x", struct.unpack("<I", flag_data)[0])
+            l.info("received flag data %#x", struct.unpack("<I", flag_data)[0])
 
         # check if it exists within the region
         magic_data = open(os.path.join(directory, 'magic')).read()
         succeeded = flag_data in magic_data and len(flag_data) == read_size
 
-        l.debug("pov successful? %s", succeeded)
+        l.info("pov successful? %s", succeeded)
 
         # wait for the challenge to exit
         CGCPovSimulator._wait_pid_timeout(challenge_bin_pid, 0, timeout)
