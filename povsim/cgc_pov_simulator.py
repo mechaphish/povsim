@@ -279,10 +279,10 @@ class CGCPovSimulator(object):
         ip_set = set_ip_value & ipmask == ip_val & ipmask
 
         if not ip_set:
-            l.warning("Ip was not set correctly")
+            l.warning("ip was not set correctly")
 
         if not register_set:
-            l.warning("Register was not set correctly")
+            l.warning("register was not set correctly")
 
         # clean up the dropped core
         os.remove(corefile)
