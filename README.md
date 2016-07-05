@@ -1,6 +1,8 @@
 ### povsim
 
-Test generated Povs.
+This project attempts to faithfully simulate the testing/using of a POV within the CGC infrastructure.
+
+It simulates both Type 1 and Type 2 negotiations and scoring.
 
 ```python
 >>> from povsim import CGCPovSimulator
