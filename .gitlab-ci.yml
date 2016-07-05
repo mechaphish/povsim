@@ -1,0 +1,15 @@
+before_script:
+    - which angr-test && angr-test sync hard
+
+povsim:
+    script: "angr-test povsim"
+    tags:
+        - "angr"
+
+colorguard:
+    script: "angr-test colorguard"
+    tags: [angr]
+
+rex:
+    script: "angr-test rex"
+    tags: [angr]
