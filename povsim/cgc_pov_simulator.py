@@ -54,7 +54,7 @@ class CGCPovSimulator(object):
         finally:
             timer.cancel()
 
-    def test_binary_pov(self, pov_filename, cb_path, enable_randomness=True, timeout=15):
+    def test_binary_pov(self, pov_filename, cb_path, enable_randomness=True, debug=False, timeout=15):
         # Test the binary pov
         # sanity checks
         if not os.path.isfile(pov_filename):
@@ -101,7 +101,8 @@ class CGCPovSimulator(object):
             os.close(challenge_r)
             os.dup2(pov_r, 0)  # read from pov as stdin
             os.dup2(challenge_w, 1)  # write to the pov
-            os.dup2(devnull.fileno(), 2)  # silence segfault message)
+            if not debug:
+                os.dup2(devnull.fileno(), 2)  # silence segfault message)
             if enable_randomness:
                 random.seed()
                 seed = str(random.randint(0, 100000))
