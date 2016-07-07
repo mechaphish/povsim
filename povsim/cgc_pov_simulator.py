@@ -7,6 +7,8 @@ import socket
 import signal
 import resource
 import tempfile
+import sys
+import shellphish_qemu
 
 from threading import Timer
 
@@ -74,8 +76,7 @@ class CGCPovSimulator(object):
         challenge_r, challenge_w = os.pipe()
         negotiation_pov, negotiation_infra = socket.socketpair()
 
-        qemu_path = os.path.join(os.path.dirname(tracer.__file__), '..',
-                                 'bin', 'tracer-qemu-cgc')
+        qemu_path = shellphish_qemu.qemu_path('cgc')
 
         # create directory for core files
         directory = tempfile.mkdtemp(prefix='rex-test-', dir='/tmp')
@@ -84,51 +85,59 @@ class CGCPovSimulator(object):
         # fork off the challenge binary
         challenge_bin_pid = os.fork()
         if challenge_bin_pid == 0:
-            # cd in tempdir
-            os.chdir(directory)
+            try:
+                # cd in tempdir
+                os.chdir(directory)
 
-            # set up core dumping, only used by type1 though
+                # set up core dumping, only used by type1 though
 
-            # pylint:disable=no-member
-            resource.setrlimit(
-                    resource.RLIMIT_CORE,
-                    (resource.RLIM_INFINITY, resource.RLIM_INFINITY)
-                    )
+                # pylint:disable=no-member
+                resource.setrlimit(
+                        resource.RLIMIT_CORE,
+                        (resource.RLIM_INFINITY, resource.RLIM_INFINITY)
+                        )
 
-            devnull = open('/dev/null', 'w')
-            # close the other entry
-            os.close(pov_w)
-            os.close(challenge_r)
-            os.dup2(pov_r, 0)  # read from pov as stdin
-            os.dup2(challenge_w, 1)  # write to the pov
-            if not debug:
-                os.dup2(devnull.fileno(), 2)  # silence segfault message)
-            if enable_randomness:
-                random.seed()
-                seed = str(random.randint(0, 100000))
-                argv = [qemu_path, "-seed", seed, "-magicdump", "magic", cb_path]
-            else:
-                argv = [qemu_path, "-magicdump", "magic", cb_path]
-            os.execve(qemu_path, argv, os.environ)
+                devnull = open('/dev/null', 'w')
+                # close the other entry
+                os.close(pov_w)
+                os.close(challenge_r)
+                os.dup2(pov_r, 0)  # read from pov as stdin
+                os.dup2(challenge_w, 1)  # write to the pov
+                if not debug:
+                    os.dup2(devnull.fileno(), 2)  # silence segfault message)
+                if enable_randomness:
+                    random.seed()
+                    seed = str(random.randint(0, 100000))
+                    argv = [qemu_path, "-seed", seed, "-magicdump", "magic", cb_path]
+                else:
+                    argv = [qemu_path, "-magicdump", "magic", cb_path]
+                os.execve(qemu_path, argv, os.environ)
+            finally:
+                l.error("an exception happened in the child code (trying running the cb)")
+                sys.exit(1)
 
             assert False, "failed to execute target binary %s" % cb_path
 
         # fork off the pov binary
         pov_pid = os.fork()
         if pov_pid == 0:
-            # close the other entry
-            os.close(pov_r)
-            os.close(challenge_w)
+            try:
+                # close the other entry
+                os.close(pov_r)
+                os.close(challenge_w)
 
-            os.dup2(challenge_r, 0)  # read from challenge's stdout
-            os.dup2(pov_w, 1)  # write to challenge's stdin
+                os.dup2(challenge_r, 0)  # read from challenge's stdout
+                os.dup2(pov_w, 1)  # write to challenge's stdin
 
-            # file descriptor 3 is the negotiation server
-            os.dup2(negotiation_pov.fileno(), 3)
+                # file descriptor 3 is the negotiation server
+                os.dup2(negotiation_pov.fileno(), 3)
 
-            random.seed()
-            seed = str(random.randint(0, 100000))
-            os.execve(qemu_path, [qemu_path, "-seed", seed, pov_filename], os.environ)
+                random.seed()
+                seed = str(random.randint(0, 100000))
+                os.execve(qemu_path, [qemu_path, "-seed", seed, pov_filename], os.environ)
+            finally:
+                l.error("an exception happened in the child code (trying running the pov)")
+                sys.exit(1)
 
         # clean up the pipes in the host
         os.close(challenge_r)

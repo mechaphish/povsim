@@ -8,5 +8,6 @@ setup(
       install_requires=[
             'angr',
             'tracer',
+            'shellphish-qemu',
       ],
 )
