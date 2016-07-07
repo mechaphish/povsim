@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import random
 import select
@@ -7,14 +8,10 @@ import socket
 import signal
 import resource
 import tempfile
-import sys
 import shellphish_qemu
-
 from threading import Timer
 
 import angr
-import tracer
-
 
 import logging
 
@@ -56,6 +53,16 @@ class CGCPovSimulator(object):
         finally:
             timer.cancel()
 
+    @staticmethod
+    def _reap_pid(pid):
+        def kill_proc(p):
+            os.kill(p, signal.SIGTERM)
+
+        res = os.waitpid(pid, os.WNOHANG)
+        if res == (0, 0):
+            l.debug("process %d did not terminate on its own, reaping", pid)
+            kill_proc(pid)
+
     def test_binary_pov(self, pov_filename, cb_path, enable_randomness=True, debug=False, timeout=15):
         # Test the binary pov
         # sanity checks
@@ -76,7 +83,7 @@ class CGCPovSimulator(object):
         challenge_r, challenge_w = os.pipe()
         negotiation_pov, negotiation_infra = socket.socketpair()
 
-        qemu_path = shellphish_qemu.qemu_path('cgc')
+        qemu_path = shellphish_qemu.qemu_path('cgc-base')
 
         # create directory for core files
         directory = tempfile.mkdtemp(prefix='rex-test-', dir='/tmp')
@@ -113,7 +120,7 @@ class CGCPovSimulator(object):
                     argv = [qemu_path, "-magicdump", "magic", cb_path]
                 os.execve(qemu_path, argv, os.environ)
             finally:
-                l.error("an exception happened in the child code (trying running the cb)")
+                l.error("an exception happened in the child code (trying to run the cb)")
                 sys.exit(1)
 
             assert False, "failed to execute target binary %s" % cb_path
@@ -136,7 +143,7 @@ class CGCPovSimulator(object):
                 seed = str(random.randint(0, 100000))
                 os.execve(qemu_path, [qemu_path, "-seed", seed, pov_filename], os.environ)
             finally:
-                l.error("an exception happened in the child code (trying running the pov)")
+                l.error("an exception happened in the child code (trying to run the pov)")
                 sys.exit(1)
 
         # clean up the pipes in the host
@@ -156,8 +163,8 @@ class CGCPovSimulator(object):
         result = self._do_binary_negotiation(negotiation_infra, directory,
                                              challenge_bin_pid, timeout)
 
-        # wait for pov to terminate
-        self._wait_pid_timeout(pov_pid, 0, timeout)
+        # try to reap child pov, if it's not dead, kill it
+        self._reap_pid(pov_pid)
 
         # clean up test directory
         shutil.rmtree(directory)
@@ -338,6 +345,6 @@ class CGCPovSimulator(object):
         l.info("pov successful? %s", succeeded)
 
         # wait for the challenge to exit
-        CGCPovSimulator._wait_pid_timeout(challenge_bin_pid, 0, timeout)
+        CGCPovSimulator._reap_pid(challenge_bin_pid)
 
         return succeeded
