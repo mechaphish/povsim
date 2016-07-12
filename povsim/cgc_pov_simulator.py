@@ -9,6 +9,7 @@ import signal
 import resource
 import tempfile
 import shellphish_qemu
+from multiprocessing import Pool
 from threading import Timer
 
 import angr
@@ -63,7 +64,31 @@ class CGCPovSimulator(object):
             l.debug("process %d did not terminate on its own, reaping", pid)
             kill_proc(pid)
 
-    def test_binary_pov(self, pov_filename, cb_path, enable_randomness=True, debug=False, timeout=15):
+    def test_binary_pov(self, pov_path, cb_path, enable_randomness=True, debug=False, timeout=15, times=1):
+        """
+        Test a binary POV
+
+        :param pov_path: path to the POV to test
+        :param cb_path: path to the challenge binary
+        :param enable_randomness: test the binary with random seed
+        :param debug: enable debug output from the challenge binary
+        :param timeout: timeout to apply to the simulation
+        :param times: number of times to the binary, if more than one this is done in parallel
+        """
+
+        if times > 1:
+            pool = Pool(processes=4)
+
+            res = [pool.apply_async(self._test_binary_pov,
+                                    (pov_path, cb_path, enable_randomness, debug, timeout))
+                                    for _ in range(times)]
+
+            return [r.get(timeout=timeout) for r in res]
+
+        else:
+            return self._test_binary_pov(pov_path, cb_path, enable_randomness, debug, timeout)
+
+    def _test_binary_pov(self, pov_filename, cb_path, enable_randomness=True, debug=False, timeout=15):
         # Test the binary pov
         # sanity checks
         if not os.path.isfile(pov_filename):
