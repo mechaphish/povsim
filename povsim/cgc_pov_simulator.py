@@ -83,7 +83,7 @@ class CGCPovSimulator(object):
                                     (pov_path, cb_path, enable_randomness, debug, timeout))
                                     for _ in range(times)]
 
-            return [r.get(timeout=timeout) for r in res]
+            return [r.get(timeout=timeout * 2) for r in res]
 
         else:
             return self._test_binary_pov(pov_path, cb_path, enable_randomness, debug, timeout)
