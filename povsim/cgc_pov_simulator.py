@@ -9,7 +9,7 @@ import signal
 import resource
 import tempfile
 import shellphish_qemu
-from multiprocessing import Pool
+from multiprocessing import Pool, TimeoutError
 from threading import Timer
 
 import angr
@@ -83,7 +83,14 @@ class CGCPovSimulator(object):
                                     (pov_path, cb_path, enable_randomness, debug, timeout))
                                     for _ in range(times)]
 
-            return [r.get(timeout=timeout * 2) for r in res]
+            results = [ ]
+            for r in res:
+                try:
+                    results.append(r.get(timeout=timeout + 5))
+                except TimeoutError:
+                    results.append(False)
+            
+            return results
 
         else:
             return self._test_binary_pov(pov_path, cb_path, enable_randomness, debug, timeout)
