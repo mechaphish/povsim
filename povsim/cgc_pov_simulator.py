@@ -208,8 +208,6 @@ class CGCPovSimulator(object):
                 random.seed()
                 seed = str(random.randint(0, 100000))
                 argv = [qemu_path, "-seed", seed, pov_filename]
-                if bitflip:
-                    argv = [argv[0]] + ["-bitflip"] + argv[1:]
                 os.execve(qemu_path, argv, os.environ)
             finally:
                 l.error("an exception happened in the child code (trying to run the pov)")
