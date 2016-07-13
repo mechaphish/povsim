@@ -109,7 +109,7 @@ class CGCPovSimulator(object):
             return self._test_binary_pov(pov_path, cb_path, enable_randomness, debug, bitflip, timeout)
 
 
-    def _multitest_binary_pov(self, pov_path, cb_path, enable_randomness, debug, bitflip=True, timeout, times):
+    def _multitest_binary_pov(self, pov_path, cb_path, enable_randomness, debug, bitflip, timeout, times):
 
             pool = Pool(processes=4)
 
@@ -182,7 +182,7 @@ class CGCPovSimulator(object):
                 else:
                     argv = [qemu_path, "-magicdump", "magic", cb_path]
                 if bitflip:
-                    argv = argv[0] + "-bitflip" + argv[1:]
+                    argv = [argv[0]] + ["-bitflip"] + argv[1:]
                 os.execve(qemu_path, argv, os.environ)
             finally:
                 l.error("an exception happened in the child code (trying to run the cb)")
@@ -208,7 +208,7 @@ class CGCPovSimulator(object):
                 seed = str(random.randint(0, 100000))
                 argv = [qemu_path, "-seed", seed, pov_filename]
                 if bitflip:
-                    argv = argv[0] + "-bitflip" + argv[1:]
+                    argv = [argv[0]] + ["-bitflip"] + argv[1:]
                 os.execve(qemu_path, argv, os.environ)
             finally:
                 l.error("an exception happened in the child code (trying to run the pov)")
