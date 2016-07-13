@@ -84,6 +84,7 @@ class CGCPovSimulator(object):
                 args = [sys.executable, __file__, pov_path, cb_path,
                         str(int(enable_randomness)),
                         str(int(debug)),
+                        str(int(bitflip)),
                         str(timeout),
                         str(times)]
 
@@ -422,12 +423,13 @@ if __name__ == "__main__":
 
     _pov_path = sys.argv[1]
     _cb_path = sys.argv[2]
-    _enable_randomness = bool(sys.argv[3])
-    _debug = bool(sys.argv[4])
-    _timeout = int(sys.argv[5])
-    _times = int(sys.argv[6])
+    _enable_randomness = bool(int(sys.argv[3]))
+    _bitflip = bool(int(sys.argv[4]))
+    _debug = bool(int(sys.argv[5]))
+    _timeout = int(sys.argv[6])
+    _times = int(sys.argv[7])
 
     _results = cps._multitest_binary_pov(_pov_path,
-            _cb_path, _enable_randomness, _debug, _timeout, _times)
+            _cb_path, _enable_randomness, _bitflip, _debug, _timeout, _times)
 
     print ', '.join(map(str, map(int, _results))),
