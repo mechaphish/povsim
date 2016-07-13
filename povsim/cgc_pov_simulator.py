@@ -65,7 +65,7 @@ class CGCPovSimulator(object):
             l.debug("process %d did not terminate on its own, reaping", pid)
             kill_proc(pid)
 
-    def test_binary_pov(self, pov_path, cb_path, enable_randomness=True, debug=False, bitflip=True, timeout=15, times=1):
+    def test_binary_pov(self, pov_path, cb_path, enable_randomness=True, debug=False, bitflip=False, timeout=15, times=1):
         """
         Test a binary POV
 
