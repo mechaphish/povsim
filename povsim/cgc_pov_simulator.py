@@ -77,6 +77,24 @@ class CGCPovSimulator(object):
         """
 
         if times > 1:
+            results = None
+            try:
+                results = self._multitest_binary_pov(pov_path, cb_path, enable_randomness, debug, timeout, times)
+            except OSError as e:
+                l.warning("encountered OSError (%s) during multitesting, resorting to loop", e.message)
+
+                results = [ ]
+                for _ in xrange(times):
+                    results.append(self._test_binary_pov(pov_path, cb_path, enable_randomness, debug, timeout))
+
+            return results
+
+        else:
+            return self._test_binary_pov(pov_path, cb_path, enable_randomness, debug, timeout)
+
+
+    def _multitest_binary_pov(self, pov_path, cb_path, enable_randomness, debug, timeout, times):
+
             pool = Pool(processes=4)
 
             res = [pool.apply_async(self._test_binary_pov,
@@ -89,11 +107,8 @@ class CGCPovSimulator(object):
                     results.append(r.get(timeout=timeout + 5))
                 except TimeoutError:
                     results.append(False)
-            
-            return results
 
-        else:
-            return self._test_binary_pov(pov_path, cb_path, enable_randomness, debug, timeout)
+            return results
 
     def _test_binary_pov(self, pov_filename, cb_path, enable_randomness=True, debug=False, timeout=15):
         # Test the binary pov
