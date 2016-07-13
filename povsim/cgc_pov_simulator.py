@@ -8,6 +8,7 @@ import socket
 import signal
 import resource
 import tempfile
+import subprocess
 import shellphish_qemu
 from multiprocessing import Pool, TimeoutError
 from threading import Timer
@@ -79,7 +80,21 @@ class CGCPovSimulator(object):
         if times > 1:
             results = None
             try:
-                results = self._multitest_binary_pov(pov_path, cb_path, enable_randomness, debug, timeout, times)
+
+                args = [sys.executable, __file__, pov_path, cb_path,
+                        str(int(enable_randomness)),
+                        str(int(debug)),
+                        str(timeout),
+                        str(times)]
+
+                p = subprocess.Popen(args, stdout=subprocess.PIPE)
+
+                stdout, _ = p.communicate()
+
+                p.wait()
+
+                results = map(bool, map(int, stdout.split(",")))
+
             except OSError as e:
                 l.warning("encountered OSError (%s) during multitesting, resorting to loop", e.message)
 
@@ -395,3 +410,18 @@ class CGCPovSimulator(object):
         CGCPovSimulator._reap_pid(challenge_bin_pid)
 
         return succeeded
+
+if __name__ == "__main__":
+    cps = CGCPovSimulator()
+
+    _pov_path = sys.argv[1]
+    _cb_path = sys.argv[2]
+    _enable_randomness = bool(sys.argv[3])
+    _debug = bool(sys.argv[4])
+    _timeout = int(sys.argv[5])
+    _times = int(sys.argv[6])
+
+    _results = cps._multitest_binary_pov(_pov_path,
+            _cb_path, _enable_randomness, _debug, _timeout, _times)
+
+    print ', '.join(map(str, map(int, _results))),
