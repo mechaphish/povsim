@@ -94,7 +94,12 @@ class CGCPovSimulator(object):
 
                 p.wait()
 
-                results = map(bool, map(int, stdout.split(",")))
+                results = [ ]
+                for line in stdout.split("\n")[:-1]:
+                    if line == "1" or line == "0":
+                        results.append(bool(line)) 
+
+                return results
 
             except OSError as e:
                 l.warning("encountered OSError (%s) during multitesting, resorting to loop", e.message)
@@ -430,4 +435,5 @@ if __name__ == "__main__":
     _results = cps._multitest_binary_pov(_pov_path,
             _cb_path, _enable_randomness, _bitflip, _debug, _timeout, _times)
 
-    print ', '.join(map(str, map(int, _results))),
+    for r in _results:
+        print (str(int(r)))
