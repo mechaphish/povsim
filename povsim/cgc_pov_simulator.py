@@ -97,7 +97,7 @@ class CGCPovSimulator(object):
                 results = [ ]
                 for line in stdout.split("\n")[:-1]:
                     if line == "1" or line == "0":
-                        results.append(bool(line)) 
+                        results.append(bool(int(line))) 
 
                 return results
 

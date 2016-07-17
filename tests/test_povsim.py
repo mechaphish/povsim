@@ -45,6 +45,14 @@ def test_multitesting():
 
     nose.tools.assert_true(all(result))
 
+    pov_tester = CGCPovSimulator()
+    pov_path = os.path.join(pov_location, 'bad.pov')
+    binary_path = os.path.join(bin_location, "cgc_scored_event_1/cgc/0b32aa01_01")
+
+    result = pov_tester.test_binary_pov(pov_path, binary_path, enable_randomness=True, times=10)
+
+    nose.tools.assert_false(any(result))
+
 def run_all():
     functions = globals()
     all_functions = dict(filter((lambda (k, v): k.startswith('test_')), functions.items()))
