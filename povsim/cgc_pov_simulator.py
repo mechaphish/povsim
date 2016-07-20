@@ -23,9 +23,10 @@ l = logging.getLogger("povsim.cgc_pov_simulator")
 class CGCPovSimulator(object):
     registers = ["eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"]
 
-    def __init__(self, expected_type=None, expected_register=None):
+    def __init__(self, expected_type=None, expected_register=None, qemu=None):
         self.expected_type = expected_type
         self.expected_register = expected_register
+        self.forced_qemu = qemu
 
     @staticmethod
     def _recv_timeout(sock, num_bytes, timeout=15):
@@ -152,7 +153,10 @@ class CGCPovSimulator(object):
         challenge_r, challenge_w = os.pipe()
         negotiation_pov, negotiation_infra = socket.socketpair()
 
-        qemu_path = shellphish_qemu.qemu_path('cgc-base')
+        if self.forced_qemu == None:
+            qemu_path = shellphish_qemu.qemu_path('cgc-base')
+        else:
+            qemu_path = self.forced_qemu
 
         # create directory for core files
         directory = tempfile.mkdtemp(prefix='rex-test-', dir='/tmp')
@@ -189,6 +193,7 @@ class CGCPovSimulator(object):
                     argv = [qemu_path, "-magicdump", "magic", cb_path]
                 if bitflip:
                     argv = [argv[0]] + ["-bitflip"] + argv[1:]
+                # argv = [argv[0]] + ["-d","in_asm","-D","/tmp/log1.txt","-singlestep"] + argv[1:]
                 os.execve(qemu_path, argv, os.environ)
             finally:
                 l.error("an exception happened in the child code (trying to run the cb)")
