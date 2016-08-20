@@ -268,7 +268,7 @@ class CGCPovSimulator(object):
                 l.error("received incorrect pov type")
                 return False
 
-        l.info("recieved pov_type of %d", pov_type)
+        l.info("received pov_type of %d", pov_type)
         if pov_type == 1:
             l.info("entering type1 negotiation")
             return self._do_binary_negotiation_type_1(negotiation_pipe, directory,
@@ -296,9 +296,9 @@ class CGCPovSimulator(object):
         regmask = struct.unpack("<I", self._recv_timeout(negotiation_pipe, 4))[0]
         regnum = struct.unpack("<I", self._recv_timeout(negotiation_pipe, 4))[0]
 
-        l.info("recieved a ipmask of %#x", ipmask)
-        l.info("recieved a regmask of %#x", regmask)
-        l.info("recieved a regnum of %#x", regnum)
+        l.info("received a ipmask of %#x", ipmask)
+        l.info("received a regmask of %#x", regmask)
+        l.info("received a regnum of %#x", regnum)
 
         register = CGCPovSimulator.registers[regnum]
         if self.expected_register is not None:
