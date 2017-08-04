@@ -353,7 +353,7 @@ class CGCPovSimulator(object):
         p = angr.Project(corefile)
         set_reg_value = None
         set_ip_value = None
-        for reg, val in p.loader.main_bin.initial_register_values():
+        for reg, val in p.loader.main_object.initial_register_values():
             if reg == register:
                 set_reg_value = val
             if reg == "eip":
