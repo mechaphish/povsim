@@ -98,7 +98,7 @@ class CGCPovSimulator(object):
                 results = [ ]
                 for line in stdout.split("\n")[:-1]:
                     if line == "1" or line == "0":
-                        results.append(bool(int(line))) 
+                        results.append(bool(int(line)))
 
                 return results
 
@@ -437,8 +437,12 @@ if __name__ == "__main__":
     _timeout = int(sys.argv[6])
     _times = int(sys.argv[7])
 
-    _results = cps._multitest_binary_pov(_pov_path,
-            _cb_path, _enable_randomness, _bitflip, _debug, _timeout, _times)
+    #_results = cps._multitest_binary_pov(_pov_path,
+    #        _cb_path, _enable_randomness, _bitflip, _debug, _timeout, _times)
 
-    for r in _results:
-        print (str(int(r)))
+    #for r in _results:
+    #    print (str(int(r)))
+
+    for _i in xrange(_times):
+        print (str(int(cps._test_binary_pov(_pov_path,
+            _cb_path, _enable_randomness, _bitflip, _debug, _timeout))))
