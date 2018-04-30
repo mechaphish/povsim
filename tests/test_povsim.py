@@ -6,7 +6,6 @@ bin_location = str(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..
 pov_location = str(os.path.dirname(os.path.realpath(__file__)))
 
 import logging
-logging.getLogger("povsim").setLevel("DEBUG")
 
 def test_good_pov():
     '''
@@ -61,6 +60,7 @@ def run_all():
             all_functions[f]()
 
 if __name__ == "__main__":
+    logging.getLogger("povsim").setLevel("DEBUG")
     import sys
     if len(sys.argv) > 1:
         globals()['test_' + sys.argv[1]]()
