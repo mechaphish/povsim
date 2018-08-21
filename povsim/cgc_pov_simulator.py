@@ -103,11 +103,11 @@ class CGCPovSimulator(object):
                 return results
 
             except OSError as e:
-                l.warning("encountered OSError (%s) during multitesting, resorting to loop", e.message)
+                l.warning("encountered OSError (%s) during multitesting, resorting to loop", e)
 
                 results = [ ]
-                for _ in xrange(times):
-                    results.append(self._test_binary_pov(pov_path, cb_path, enable_randomness, debug,\
+                for _ in range(times):
+                    results.append(self._test_binary_pov(pov_path, cb_path, enable_randomness, debug,
                             bitflip, timeout))
 
             return results
@@ -198,8 +198,6 @@ class CGCPovSimulator(object):
             finally:
                 l.error("an exception happened in the child code (trying to run the cb)")
                 sys.exit(1)
-
-            assert False, "failed to execute target binary %s" % cb_path
 
         # fork off the pov binary
         pov_pid = os.fork()
@@ -405,7 +403,7 @@ class CGCPovSimulator(object):
         type2_vals = [region_addr, region_size, read_size]
         type2_vals_elems = map(lambda x: struct.pack("<I", x), type2_vals)
         l.info("sent off type2 params (%#x, %#x, %#x)", region_addr, region_size, read_size)
-        negotiation_pipe.send(''.join(type2_vals_elems))
+        negotiation_pipe.send(b''.join(type2_vals_elems))
 
         # receive the leaked flag data
         flag_data = CGCPovSimulator._recv_timeout(negotiation_pipe, read_size, timeout)
@@ -443,6 +441,6 @@ if __name__ == "__main__":
     #for r in _results:
     #    print (str(int(r)))
 
-    for _i in xrange(_times):
+    for _i in range(_times):
         print (str(int(cps._test_binary_pov(_pov_path,
             _cb_path, _enable_randomness, _bitflip, _debug, _timeout))))
