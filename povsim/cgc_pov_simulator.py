@@ -30,7 +30,7 @@ class CGCPovSimulator(object):
 
     @staticmethod
     def _recv_timeout(sock, num_bytes, timeout=15):
-        r = ""
+        r = b""
         while len(r) < num_bytes:
             rfd, _, _ = select.select([sock], [], [sock], timeout)
             if sock in rfd:
@@ -96,8 +96,8 @@ class CGCPovSimulator(object):
                 p.wait()
 
                 results = [ ]
-                for line in stdout.split("\n")[:-1]:
-                    if line == "1" or line == "0":
+                for line in stdout.split(b"\n")[:-1]:
+                    if line == b"1" or line == b"0":
                         results.append(bool(int(line)))
 
                 return results
@@ -414,7 +414,7 @@ class CGCPovSimulator(object):
             l.info("received flag data %#x", struct.unpack("<I", flag_data)[0])
 
         # check if it exists within the region
-        magic_data = open(os.path.join(directory, 'magic')).read()
+        magic_data = open(os.path.join(directory, 'magic'), 'rb').read()
         succeeded = flag_data in magic_data and len(flag_data) == read_size
 
         l.info("pov successful? %s", succeeded)
