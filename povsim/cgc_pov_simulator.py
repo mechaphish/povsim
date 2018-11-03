@@ -336,9 +336,9 @@ class CGCPovSimulator(object):
             return False
 
         corefile = None
-        for item in os.listdir(directory):
+        for item in os.listdir("/tmp"):
             if item.endswith('.core'):
-                corefile = os.path.join(directory, item)
+                corefile = os.path.join("/tmp", item)
                 break
 
         if corefile is None:
