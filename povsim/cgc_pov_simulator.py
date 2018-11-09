@@ -161,14 +161,12 @@ class CGCPovSimulator(object):
         # create directory for core files
         directory = tempfile.mkdtemp(prefix='rex-test-', dir='/tmp')
         cb_path = os.path.realpath(cb_path)
+        magic_path = os.path.join(directory, "magic")
 
         # fork off the challenge binary
         challenge_bin_pid = os.fork()
         if challenge_bin_pid == 0:
             try:
-                # cd in tempdir
-                os.chdir(directory)
-
                 # set up core dumping, only used by type1 though
 
                 # pylint:disable=no-member
@@ -188,9 +186,9 @@ class CGCPovSimulator(object):
                 if enable_randomness:
                     random.seed()
                     seed = str(random.randint(0, 100000))
-                    argv = [qemu_path, "-seed", seed, "-magicdump", "magic", cb_path]
+                    argv = [qemu_path, "-C", directory, "-seed", seed, "-magicdump", magic_path, cb_path]
                 else:
-                    argv = [qemu_path, "-magicdump", "magic", cb_path]
+                    argv = [qemu_path, "-C", directory, "-magicdump", magic_path, cb_path]
                 if bitflip:
                     argv = [argv[0]] + ["-bitflip"] + argv[1:]
                 # argv = [argv[0]] + ["-d","in_asm","-D","/tmp/log1.txt","-singlestep"] + argv[1:]
@@ -336,9 +334,9 @@ class CGCPovSimulator(object):
             return False
 
         corefile = None
-        for item in os.listdir("/tmp"):
+        for item in os.listdir(directory):
             if item.endswith('.core'):
-                corefile = os.path.join("/tmp", item)
+                corefile = os.path.join(directory, item)
                 break
 
         if corefile is None:
