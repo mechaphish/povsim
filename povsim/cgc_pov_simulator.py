@@ -412,7 +412,8 @@ class CGCPovSimulator(object):
             l.info("received flag data %#x", struct.unpack("<I", flag_data)[0])
 
         # check if it exists within the region
-        magic_data = open(os.path.join(directory, 'magic'), 'rb').read()
+        with open(os.path.join(directory, 'magic'), 'rb') as fp:
+            magic_data = fp.read()
         succeeded = flag_data in magic_data and len(flag_data) == read_size
 
         l.info("pov successful? %s", succeeded)
