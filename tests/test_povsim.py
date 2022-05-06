@@ -1,4 +1,3 @@
-import nose
 from povsim import CGCPovSimulator
 
 import os
@@ -17,7 +16,7 @@ def test_good_pov():
     binary_path = os.path.join(bin_location, "cgc_scored_event_1/cgc/0b32aa01_01")
     result = pov_tester.test_binary_pov(pov_path, binary_path, enable_randomness=True)
 
-    nose.tools.assert_true(result)
+    assert result
 
 def test_bad_pov():
     '''
@@ -29,7 +28,7 @@ def test_bad_pov():
     binary_path = os.path.join(bin_location, "cgc_scored_event_1/cgc/0b32aa01_01")
     result = pov_tester.test_binary_pov(pov_path, binary_path, enable_randomness=True)
 
-    nose.tools.assert_false(result)
+    assert not result
 
 def test_multitesting():
     '''
@@ -42,7 +41,7 @@ def test_multitesting():
 
     result = pov_tester.test_binary_pov(pov_path, binary_path, enable_randomness=True, times=10)
 
-    nose.tools.assert_true(all(result))
+    assert all(result)
 
     pov_tester = CGCPovSimulator()
     pov_path = os.path.join(pov_location, 'bad.pov')
@@ -50,11 +49,11 @@ def test_multitesting():
 
     result = pov_tester.test_binary_pov(pov_path, binary_path, enable_randomness=True, times=10)
 
-    nose.tools.assert_false(any(result))
+    assert not any(result)
 
 def run_all():
     functions = globals()
-    all_functions = dict(filter((lambda (k, v): k.startswith('test_')), functions.items()))
+    all_functions = dict(filter((lambda k, v: k.startswith('test_')), functions.items()))
     for f in sorted(all_functions.keys()):
         if hasattr(all_functions[f], '__call__'):
             all_functions[f]()
